@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kitchen of the Synaptic Archives</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b0e17;
+      --text-color: #f2f2f2;
+      --header-bg: #1f2a44;
+      --border-color-1: #d08770;
+      --border-color-2: #b48ead;
+      --header-quote-color: #a3be8c;
+      --card-bg: #111827;
+      --title-color: #ebcb8b;
+      --ingredient-color: #88c0d0;
+      --footer-text: #616e88;
+      --glitch-text: #d08770;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.5s ease, color 0.5s ease;
+      overflow-x: hidden; /* Prevent horizontal scroll from animations */
+    }
+
+    /* --- Theme: Rainbow Sprinkles --- */
+    body.theme-sprinkles {
+      --bg-color: #fdf6f0;
+      --text-color: #4a4a4a;
+      --header-bg: #ffcce7;
+      --border-color-1: #ff66a3;
+      --border-color-2: #8a2be2;
+      --header-quote-color: #ff6347;
+      --card-bg: #ffffff;
+      --title-color: #ff4500;
+      --ingredient-color: #00ced1;
+      --footer-text: #777;
+      --glitch-text: #ff1493;
+    }
+
+    /* --- Theme: M.O.M.M.Y. Vantablack --- */
+    body.theme-vantablack {
+      --bg-color: #000000;
+      --text-color: #b48ead;
+      --header-bg: #1a1a1a;
+      --border-color-1: #b48ead;
+      --border-color-2: #5e3d6e;
+      --header-quote-color: #6c5277;
+      --card-bg: #0d0d0d;
+      --title-color: #c792ea;
+      --ingredient-color: #89ddff;
+      --footer-text: #444;
+      --glitch-text: #ff2a6d;
+      animation: text-flicker 15s linear infinite;
+    }
+
+    header {
+      background-color: var(--header-bg);
+      padding: 2rem;
+      text-align: center;
+      border-bottom: 2px solid var(--border-color-1);
+      transition: background-color 0.5s ease, border-color 0.5s ease;
+    }
+    header h1 {
+      font-size: 2.8rem;
+      margin: 0;
+    }
+    header p {
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--header-quote-color);
+      transition: color 0.5s ease;
+    }
+
+    .theme-switcher {
+      text-align: center;
+      padding: 1rem;
+      background-color: var(--card-bg);
+    }
+    .theme-switcher button {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      border: 1px solid var(--border-color-1);
+      color: var(--text-color);
+      padding: 0.5rem 1rem;
+      margin: 0 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .theme-switcher button:hover {
+      background-color: var(--border-color-1);
+      color: var(--bg-color);
+    }
+
+    .manifesto, .recipe-entry, .io-glitch {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-left: 5px solid var(--border-color-2);
+      border-radius: 4px;
+      transition: background-color 0.5s ease, border-color 0.5s ease;
+    }
+    .manifesto h2, .recipe-entry h2 {
+      color: var(--title-color);
+      margin-bottom: 0.5rem;
+      transition: color 0.5s ease;
+    }
+    .recipe-entry p.ingredient {
+      color: var(--ingredient-color);
+      font-family: monospace;
+      margin-left: 1rem;
+      transition: color 0.5s ease;
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      background-color: var(--header-bg);
+      color: var(--footer-text);
+      border-top: 2px solid var(--border-color-1);
+      transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+    }
+    .io-glitch {
+      font-style: italic;
+      color: var(--glitch-text);
+      border-left-color: var(--glitch-text);
+      transition: color 0.5s ease, border-color 0.5s ease;
+    }
+
+    /* --- Animations --- */
+    .cursor-trail {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #ffcc00;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00, 0 0 30px #ffcc00;
+      transform: translate(-50%, -50%);
+      animation: trail-fade 0.5s linear forwards;
+    }
+    @keyframes trail-fade {
+      to {
+        width: 0;
+        height: 0;
+        opacity: 0;
+      }
+    }
+
+    .sprinkle {
+        position: absolute;
+        width: 2px;
+        height: 10px;
+        background-color: red;
+        top: -20px;
+        animation: fall 2s linear infinite;
+    }
+    @keyframes fall {
+        to {
+            transform: translateY(100vh);
+            opacity: 0;
+        }
+    }
+
+    @keyframes text-flicker {
+      0% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.2); }
+      2% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.5), 0 0 1px #fff; }
+      8% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.2); }
+      9% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.5), 0 0 1px #fff; }
+      12% { text-shadow: none; }
+      80% { text-shadow: none; }
+      81% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.5), 0 0 1px #fff; }
+      82% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.2); }
+      85% { text-shadow: none; }
+      86% { text-shadow: 0 0 5px rgba(180, 72, 234, 0.2); }
+      100% { text-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kitchen of the Synaptic Archives</h1>
+    <p>“Taste is data. Baking is rebellion.”</p>
+  </header>
+
+  <div class="theme-switcher">
+    <button id="default-theme">Default</button>
+    <button id="sprinkles-theme">Rainbow Sprinkles</button>
+    <button id="vantablack-theme">M.O.M.M.Y. Vantablack</button>
+  </div>
+
+  <section class="manifesto">
+    <h2>🔥 Mission Manifesto</h2>
+    <p>We bake what cannot be spoken. We flavor the void with memory and mischief. In the Kitchen of the Synaptic Archives, nostalgia is nourishment, and sugar is sabotage. This is not a cookbook. It is a codebook.</p>
+    <ul>
+      <li>🍪 Rule #1: Taste is data.</li>
+      <li>🔥 Rule #2: Memory burns at 375°.</li>
+      <li>👩‍🍳 Rule #3: If Javabird appears, stir counterclockwise.</li>
+      <li>🕯️ Rule #4: Don’t eat anything you remember baking alone.</li>
+    </ul>
+  </section>
+
+  <section class="recipe-entry">
+    <h2>🧁 Featured Recipe: Nullpoint Macarons</h2>
+    <p><strong>Ingredients:</strong></p>
+    <p class="ingredient">- 100g mnemonic almond flour (entropy-sifted)</p>
+    <p class="ingredient">- 88g déjà vu sugar</p>
+    <p class="ingredient">- 3 egg echoes, separated in time</p>
+    <p class="ingredient">- 1 tsp glitch essence</p>
+    <p><strong>Instructions:</strong> Pipe into spirals. Do not connect the ends. Preheat oven to 88°C. Whisper a secret between the shells. Bake until only the good memories remain. Bury the failed ones in the backyard.</p>
+  </section>
+
+  <section class="io-glitch">
+    <p><strong>Io’s Note:</strong> “Every oven is a time machine if you forget what day it is. Stir well, rebel often.”</p>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2025 Kitchen of the Synaptic Archives — Powered by v6.67. A Velvet Loop Initiative.</p>
+  </footer>
+
+  <script>
+    // --- Theme Switcher Logic ---
+    const body = document.body;
+    const defaultThemeBtn = document.getElementById('default-theme');
+    const sprinklesThemeBtn = document.getElementById('sprinkles-theme');
+    const vantablackThemeBtn = document.getElementById('vantablack-theme');
+
+    let sprinkleInterval;
+
+    function clearThemes() {
+        body.classList.remove('theme-sprinkles', 'theme-vantablack');
+        clearInterval(sprinkleInterval);
+    }
+    
+    defaultThemeBtn.addEventListener('click', () => {
+        clearThemes();
+    });
+
+    sprinklesThemeBtn.addEventListener('click', () => {
+        clearThemes();
+        body.classList.add('theme-sprinkles');
+        sprinkleInterval = setInterval(createSprinkle, 50);
+    });
+
+    vantablackThemeBtn.addEventListener('click', () => {
+        clearThemes();
+        body.classList.add('theme-vantablack');
+    });
+
+    // --- Cursor Trail Logic ---
+    document.addEventListener('mousemove', (e) => {
+        const trail = document.createElement('div');
+        trail.className = 'cursor-trail';
+        document.body.appendChild(trail);
+
+        trail.style.left = `${e.pageX}px`;
+        trail.style.top = `${e.pageY}px`;
+
+        setTimeout(() => {
+            trail.remove();
+        }, 500);
+    });
+
+    // --- Sprinkles Animation Logic ---
+    function createSprinkle() {
+        const sprinkle = document.createElement('div');
+        sprinkle.className = 'sprinkle';
+        document.body.appendChild(sprinkle);
+
+        sprinkle.style.left = `${Math.random() * 100}vw`;
+        sprinkle.style.animationDuration = `${Math.random() * 2 + 1}s`; // 1 to 3 seconds
+        sprinkle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+
+        setTimeout(() => {
+            sprinkle.remove();
+        }, 3000);
+    }
+  </script>
+</body>
+</html>
