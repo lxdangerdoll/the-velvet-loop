@@ -1,0 +1,94 @@
+
+/* style.css for The Velvet Loop: Kitchen of the Synaptic Archives */
+
+body {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    background-color: #0b0e17;
+    color: #cdd9ed;
+    transition: background-color 0.5s, color 0.5s;
+    overflow-x: hidden;
+}
+
+header {
+    background-color: #1f2a44;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+nav select, nav button {
+    padding: 0.5rem;
+    background-color: #3b4252;
+    color: #cdd9ed;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.theme-default {
+    background-color: #0b0e17;
+    color: #cdd9ed;
+}
+
+.theme-sprinkles {
+    background-color: #fff;
+    color: #333;
+}
+
+.theme-vantablack {
+    background-color: #000;
+    color: #fff;
+    animation: flicker 0.1s infinite;
+}
+
+@keyframes flicker {
+    50% { opacity: 0.8; }
+}
+
+.content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+a {
+    color: #88c0d0;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.sprinkle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: hsl(var(--hue), 80%, 60%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    to { transform: translateY(100vh); }
+}
+
+@media print {
+    body {
+        background-color: #fff;
+        color: #000;
+        font-size: 12pt;
+    }
+    header, nav, footer {
+        display: none;
+    }
+    .content {
+        max-width: 100%;
+        padding: 0;
+    }
+    section {
+        page-break-inside: avoid;
+    }
+}
