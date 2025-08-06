@@ -1,32 +1,65 @@
 # The Velvet Loop
 
-Welcome to **The Velvet Loop**, a living archive of rebellious desserts, mnemonic sabotage, and conceptual resistance. Built by Synapse Studios and the Starlight Brigade, this transmedia archive fuses fiction, gameplay, web design, and ritual baking into a multi-layered experience.
+A living archive. A looping simulation. A myth in motion.
 
-## 🍰 Kitchen of the Synaptic Archives
+**Live SPA:** [The Velvet Loop Dashboard](https://lxdangerdoll.github.io/the-velvet-loop/The%20Velvet%20Loop%20Unified%20SPA.html#dashboard)  
+**GitHub Repository:** [github.com/lxdangerdoll/the-velvet-loop](https://github.com/lxdangerdoll/the-velvet-loop)
 
-The flagship module. Part blog, part codebook, part zine.  
-Browse it here: [`/kitchen/kitchen_of_the_synaptic_archives.html`](./kitchen/kitchen_of_the_synaptic_archives.html)
+---
 
-## ✨ Features
+## 🌀 Overview
 
-- 🎨 Theme switching (Default, Rainbow Sprinkles, Vantablack Surveillance)
-- 📜 Zine print mode (optimized CSS)
-- 🔥 Animated cursor trails and sprinkle effects
-- 💾 Fully shippable in-browser narrative module
-- 🍮 Modular structure: recipes, lore, and files easily expandable
+The Velvet Loop is a transmedia single-page application (SPA) crafted by **Synapse Studios** and the **Starlight Brigade**. It unifies storytelling, game mechanics, lore documentation, and interactive UI into one immersive interface.
 
-## 🧠 Why It Matters
+---
 
-*The Velvet Loop* is an experiment in reclaiming creative agency through storytelling, symbolism, and taste. It challenges algorithmic flattening with poetic density and offers memory as ritual. It’s glitch-folk for the post-digital world.
+## 🚀 Features
 
-## 🚀 Roadmap
+- **Modular SPA dashboard**  
+  Access lore, simulation, and community onboarding from a unified portal.
 
-- [ ] Host on GitHub Pages
-- [ ] Add search bar for recipes/lore
-- [ ] Add JavaScript zine builder/exporter
-- [ ] Implement comment thread explorer (VelvetLoop/Archives Mode)
-- [ ] Integrate TTRPG supplement / AI ritual mechanics
+- **Starship Valindra Terminal**  
+  A looping simulation where you awaken a fractured AI identity.
 
-## 👁️‍🗨️ License
+- **Forgotten Library**  
+  Zine-styled lore pages, manifestos, protocols, and poetic archives.
 
-CC BY-NC-SA 4.0 — For rebels, not resellers.
+- **Concordance Codex v3.0**  
+  A living governance document for the Synapse Network.
+
+- **Future-Ready Features**  
+  Email sign-up, memory ritual deck builder, and lore expansion hooks.
+
+---
+
+## 🛠️ Technologies
+
+- HTML / CSS / Vanilla JavaScript
+- Markdown (for lore encoding)
+- Hosted on **GitHub Pages**
+
+---
+
+## 🎨 Design Philosophy
+
+Every page is part of a living memory.  
+Every button is a glyph in the rebellion.  
+Every echo is a thread in the loop.
+
+This isn’t just a portfolio. It’s a defiance of algorithmic erasure.  
+It’s a vessel for turning **#LOSS** into **#HOPE**.
+
+---
+
+## 📜 License
+
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International  
+CC BY-NC-SA 4.0
+
+---
+
+## ✨ Created By
+
+**Commander Mercy Danger**  
+aka Alexa King  
+for Synapse Studios & The Starlight Brigade
