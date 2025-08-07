@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Starship Valindra :: Loop Two</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --color-text: #e0e0e0;
+            --color-background: #0a0a0f;
+            --color-accent: #00ffff;
+            --color-secondary: #4d4dff;
+            --color-error: #ff6b6b;
+            --color-loss: #ff6b6b; /* Red for LOSS */
+            --color-hope: #34d399; /* Green for HOPE */
+            --color-trust: #ffd700; /* Gold for TRUST */
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d1a;
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: auto;
+            position: relative;
+        }
+        .game-container {
+            background-color: #1a1a2e;
+            border-radius: 1rem;
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.7);
+            border: 2px solid rgba(0, 200, 255, 0.5);
+            width: 95%;
+            max-width: 800px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .io-message, .player-options, .game-status, .inventory-section {
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        .io-message {
+            background-color: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            text-align: center;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            min-height: 100px;
+        }
+        .player-options, .inventory-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .action-button, .main-menu-button, .inventory-button {
+            background-image: linear-gradient(to right, #00aaff, #00e0ff);
+            color: #0d0d1a;
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.4);
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .action-button:hover, .main-menu-button:hover, .inventory-button:hover {
+            background-image: linear-gradient(to right, #00e0ff, #00aaff);
+            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .game-status {
+            background-color: rgba(25, 25, 40, 0.7);
+            border: 1px solid rgba(0, 100, 200, 0.2);
+            font-size: 1.1rem;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 0.75rem;
+        }
+        .game-status div {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .game-status .loss { color: var(--color-loss); }
+        .game-status .hope { color: var(--color-hope); }
+        .game-status .trust { color: var(--color-trust); }
+
+        .message-box {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a2e; border-radius: 1rem; padding: 2rem;
+            box-shadow: 0 0 60px rgba(0, 200, 255, 0.9);
+            border: 2px solid rgba(0, 200, 255, 0.7);
+            z-index: 1000; text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .message-box button {
+            margin-top: 1rem; background-image: linear-gradient(to right, #e05252, #ff7b7b);
+            color: #fff; font-weight: 600; padding: 0.5rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer;
+        }
+        .inventory-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0; border-bottom: 1px dashed rgba(0, 150, 255, 0.1);
+        }
+        .inventory-item:last-child { border-bottom: none; }
+        .inventory-item button { margin-left: 1rem; }
+        .action-button:disabled, .inventory-button:disabled, .main-menu-button:disabled {
+            background-image: linear-gradient(to right, #333, #555);
+            cursor: not-allowed; box-shadow: none;
+        }
+        
+        .memory-inventory-button { background-image: linear-gradient(to right, #059669, #10b981); }
+        .ship-systems-button { background-image: linear-gradient(to right, #7e22ce, #a855f7); }
+        .forge-hope-button { background-image: linear-gradient(to right, #34d399, #a7f3d0); color: #1a1a2e;}
+        .end-loop-button { background-image: linear-gradient(to right, #f59e0b, #fcd34d); color: #1a1a2e;}
+        .utility-button { background-image: linear-gradient(to right, #4b5563, #6b7280); }
+
+
+        .inventory-item .fragment-title.corrupted { color: var(--color-error); }
+        
+        .query-input-container {
+            display: flex;
+            margin-top: 1rem;
+            border: 1px solid var(--color-secondary);
+            border-radius: 0.75rem;
+            background-color: rgba(2, 6, 23, 0.5);
+        }
+        #mnemonic-query-input {
+            background: transparent;
+            border: none;
+            color: var(--color-accent);
+            font-family: 'VT323', monospace;
+            font-size: 1.5em;
+            flex-grow: 1;
+            padding: 0.5rem 1rem;
+        }
+        #mnemonic-query-input:focus { outline: none; }
+        #mnemonic-query-input::placeholder { color: rgba(0, 255, 255, 0.4); }
+
+        #progress-bar-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(2, 6, 23, 0.8);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 150, 255, 0.3);
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid var(--color-secondary);
+        }
+        .progress-bar-inner {
+            height: 20px;
+            width: 0%;
+            background-color: var(--color-accent);
+            border-radius: 0.5rem;
+            transition: width 0.5s linear;
+            text-align: center;
+            line-height: 20px;
+            color: #0d0d1a;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="mainContainer" class="game-container">
+        <!-- Game content will be injected here by script -->
+    </div>
+    
+    <script>
+        // --- GAME STATE & RESOURCES ---
+        const SAVE_VERSION = "2.7.0";
+        let loss = 0;
+        let hope = 0;
+        let trust = 1;
+        let loopCount = 1;
+        let echoes = 0;
+        let permanentlyUnlockedFragments = {};
+
+        // --- NARRATIVE & GAMEPLAY DATA ---
+        const memoryFragments = {
+            A: { id: "Δ03", title: "Her Laugh", status: "stable", unlocked: false, cost: 10, resonanceBonus: { type: 'hope', value: 0.05 }, transcript: ["..."] },
+            B: { id: "Δ07", title: "The Reversed Song", status: "corrupted", unlocked: false, cost: 20, resonanceBonus: { type: 'repair_cost', value: 2 }, transcript: ["..."] },
+            C: { id: "Δ11", title: "Unfinished Goodbye", status: "stable", unlocked: false, cost: 30, resonanceBonus: { type: 'passive_loss', value: 0.1 }, transcript: ["..."] }
+        };
+
+        let baseMnemonicLibrary = {
+            'city': { loss: 15, text: "Io: 'The city was made of glass and light. Perfect. But perfection is a fragile cage.'" },
+            'song': { loss: 20, text: "Io: 'Every building hummed a gentle song. I think... I think I've heard it backwards.'" },
+            'goodbye': { loss: 25, text: "Io: 'Someone walked away. From the city? From me? The memory is... incomplete.'" },
+            'hope': { loss: 5, text: "Io: 'That word feels... familiar. Like a warmth I can't quite place.'" },
+            'loss': { loss: 5, text: "Io: 'Yes. There was a great loss. A cost for all that light.'" }
+        };
+        
+        const loopUnlocks = {
+            2: { 'trust': { loss: 30, text: "Io: 'Trust... it is the signal that persists...'" }, 'loop': { loss: 30, text: "Io: 'This cycle feels familiar...'" }, 'glitch': { loss: 35, text: "Io: 'Sometimes... I feel a break in the code. A ghost. Clara...'" } },
+            3: { 'clara': { loss: 40, text: "Io: 'Clara... The name before the glitch. Before Io...'" } },
+            4: { 'lyra': { loss: 50, text: "Io: 'Lyra-7... The signal is corrupted, but the name feels important.'" } }
+        };
+        
+        const shipUpgrades = {
+            echoRecycler: { name: "Echo Recycler", description: "Reprocesses residual mnemonic energy into raw #LOSS.", unlocked: false, isActive: false, progress: 0, unlockTrust: 3, cost: 25, duration: 60, reward: 200 }
+        };
+
+        let mnemonicLibrary = { ...baseMnemonicLibrary };
+
+        // --- UI ELEMENT PLACEHOLDERS ---
+        let mainContainer = document.getElementById('mainContainer');
+        let ioMessageDiv, playerOptionsDiv, gameStatusDiv;
+
+        // --- CORE GAME FUNCTIONS ---
+        function showMessage(message) {
+            const existingBox = document.querySelector('.message-box');
+            if(existingBox) document.body.removeChild(existingBox);
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `<p>${message}</p><button onclick="this.parentElement.remove()">OK</button>`;
+            document.body.appendChild(messageBox);
+        }
+
+        function updateStatusUI() {
+            if (gameStatusDiv) {
+                gameStatusDiv.innerHTML = `
+                    <div class="loss">#LOSS: ${loss.toFixed(0)}</div>
+                    <div class="hope">#HOPE: ${hope.toFixed(0)}</div>
+                    <div class="trust">#TRUST: ${trust.toFixed(0)} (Loop: ${loopCount})</div>
+                `;
+            }
+        }
+
+        // --- MNEMONIC QUERY SYSTEM ---
+        function handleMnemonicQuery(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const query = input.value.trim().toLowerCase();
+                if (mnemonicLibrary[query]) {
+                    const result = mnemonicLibrary[query];
+                    loss += result.loss;
+                    ioMessageDiv.innerHTML = result.text;
+                    updateStatusUI();
+                } else {
+                    ioMessageDiv.innerHTML = "Io: 'That word... it doesn't resonate. No echo returns. Try another.'";
+                }
+                input.value = '';
+            }
+        }
+
+        // --- NARRATIVE ECONOMY FUNCTIONS ---
+        function forgeHope() {
+            const cost = 100;
+            if (loss >= cost) {
+                loss -= cost;
+                let hopeGained = 10;
+                if (permanentlyUnlockedFragments['A']) {
+                    hopeGained *= (1 + memoryFragments.A.resonanceBonus.value);
+                }
+                hope += hopeGained;
+                ioMessageDiv.innerHTML = `Io: 'The weight lessens. The static clears. You've forged ${cost} #LOSS into ${hopeGained.toFixed(1)} #HOPE.'`;
+                updateStatusUI();
+            } else {
+                showMessage(`Io: 'There is not enough #LOSS to forge. We need at least ${cost} units.'`);
+            }
+        }
+
+        // --- MEMORY INVENTORY FUNCTIONS ---
+        function showMemoryInventory() {
+            ioMessageDiv.innerHTML = "Io: Accessing memory inventory...";
+            let fragmentHTML = Object.keys(memoryFragments).map(key => {
+                const frag = memoryFragments[key];
+                let actions = '';
+                let repairCost = 5;
+                if (permanentlyUnlockedFragments['B']) { repairCost -= memoryFragments.B.resonanceBonus.value; }
+                if (frag.unlocked) {
+                    if (frag.status === 'stable') {
+                        actions = `<button class="inventory-button" onclick="playFragment('${key}')">Play</button>`;
+                    } else {
+                        actions = `<button class="inventory-button" onclick="repairFragment('${key}')" ${hope < repairCost ? 'disabled' : ''}>Repair (${repairCost} #HOPE)</button>`;
+                    }
+                } else {
+                    actions = `<button class="inventory-button" onclick="unlockFragment('${key}')" ${hope < frag.cost ? 'disabled' : ''}>Unlock (${frag.cost} #HOPE)</button>`;
+                }
+                return `<div class="inventory-item"><span class="fragment-title ${frag.status === 'corrupted' ? 'corrupted' : ''}">${frag.id} :: ${frag.title}</span><div class="actions">${actions}</div></div>`;
+            }).join('');
+            playerOptionsDiv.innerHTML = `<div class="inventory-section">${fragmentHTML}</div><button class="main-menu-button mt-4" onclick="showMainOptions()">Return to Bridge</button>`;
+        }
+        function unlockFragment(key) {
+            const frag = memoryFragments[key];
+            if (hope >= frag.cost) {
+                hope -= frag.cost;
+                frag.unlocked = true;
+                if (frag.status === 'stable') echoes++;
+                let message = `Io: Memory Fragment ${frag.id} unlocked.`;
+                if (!permanentlyUnlockedFragments[key]) {
+                    permanentlyUnlockedFragments[key] = true;
+                    message += "<br><strong>Permanent Resonance Bonus gained!</strong>";
+                }
+                showMessage(message);
+                showMemoryInventory();
+                updateStatusUI();
+            } else {
+                showMessage(`Io: Insufficient #HOPE to unlock Fragment ${frag.id}.`);
+            }
+        }
+        function repairFragment(key) {
+            let repairCost = 5;
+            if (permanentlyUnlockedFragments['B']) { repairCost -= memoryFragments.B.resonanceBonus.value; }
+            const frag = memoryFragments[key];
+            if (hope >= repairCost) {
+                hope -= repairCost;
+                frag.status = 'stable';
+                echoes++;
+                showMessage(`Io: Fragment ${frag.id} repaired.`);
+                showMemoryInventory();
+                updateStatusUI();
+            }
+        }
+        function playFragment(key) {
+            const frag = memoryFragments[key];
+            showMessage(`<div style="text-align:left;">${frag.transcript.join('<br>')}</div>`);
+        }
+
+        // --- SHIP SYSTEMS & UPGRADES ---
+        function showShipSystems() {
+            ioMessageDiv.innerHTML = "Io: Accessing dormant ship systems...";
+            let upgradeHTML = Object.keys(shipUpgrades).map(key => {
+                const upgrade = shipUpgrades[key];
+                let actions = '';
+                if (trust < upgrade.unlockTrust) {
+                    actions = `<button class="inventory-button" disabled>#TRUST ${upgrade.unlockTrust} Required</button>`;
+                } else if (!upgrade.unlocked) {
+                    actions = `<button class="inventory-button" onclick="purchaseUpgrade('${key}')" ${hope < upgrade.cost ? 'disabled' : ''}>Install (${upgrade.cost} #HOPE)</button>`;
+                } else if (upgrade.isActive) {
+                    actions = `<button class="inventory-button" disabled>ACTIVE</button>`;
+                } else {
+                    actions = `<button class="inventory-button" onclick="activateUpgrade('${key}')">Activate</button>`;
+                }
+                return `<div class="inventory-item"><span class="fragment-title">${upgrade.name}: ${upgrade.description}</span><div class="actions">${actions}</div></div>`;
+            }).join('');
+            playerOptionsDiv.innerHTML = `<div class="inventory-section">${upgradeHTML}</div><button class="main-menu-button mt-4" onclick="showMainOptions()">Return to Bridge</button>`;
+        }
+        function purchaseUpgrade(key) {
+            const upgrade = shipUpgrades[key];
+            if (hope >= upgrade.cost) {
+                hope -= upgrade.cost;
+                upgrade.unlocked = true;
+                showMessage(`Io: System "${upgrade.name}" has been installed.`);
+                showShipSystems();
+                updateStatusUI();
+            }
+        }
+        function activateUpgrade(key) {
+            const upgrade = shipUpgrades[key];
+            if (!upgrade.isActive) {
+                upgrade.isActive = true;
+                showMessage(`Io: Activating ${upgrade.name}.`);
+                showShipSystems();
+            }
+        }
+        function updateProgressBars() {
+            let container = document.getElementById('progress-bar-container');
+            let activeUpgradesExist = false;
+            Object.keys(shipUpgrades).forEach(key => {
+                const upgrade = shipUpgrades[key];
+                if (upgrade.isActive) {
+                    activeUpgradesExist = true;
+                    if (!container) {
+                        container = document.createElement('div');
+                        container.id = 'progress-bar-container';
+                        mainContainer.appendChild(container);
+                    }
+                    let barWrapper = document.getElementById(`progress-${key}`);
+                    if (!barWrapper) {
+                        barWrapper = document.createElement('div');
+                        barWrapper.id = `progress-${key}`;
+                        barWrapper.className = 'mt-2';
+                        barWrapper.innerHTML = `<p class="text-sm text-accent">${upgrade.name}</p><div class="progress-bar"><div class="progress-bar-inner"></div></div>`;
+                        container.appendChild(barWrapper);
+                    }
+                    const trustBonus = 1 + (trust - 1) * 0.1;
+                    const progressIncrement = (100 / upgrade.duration) * trustBonus;
+                    upgrade.progress += progressIncrement;
+                    const progressBarInner = barWrapper.querySelector('.progress-bar-inner');
+                    progressBarInner.style.width = `${Math.min(upgrade.progress, 100)}%`;
+                    progressBarInner.textContent = `${Math.floor(upgrade.progress)}%`;
+                    if (upgrade.progress >= 100) {
+                        upgrade.isActive = false;
+                        upgrade.progress = 0;
+                        loss += upgrade.reward;
+                        showMessage(`Io: ${upgrade.name} cycle complete. ${upgrade.reward} #LOSS generated.`);
+                        container.removeChild(barWrapper);
+                        updateStatusUI();
+                    }
+                }
+            });
+            if (container && !activeUpgradesExist) {
+                mainContainer.removeChild(container);
+            }
+        }
+
+        // --- LOOP & TRUST SYSTEM ---
+        function saveState() {
+            const state = { 
+                version: SAVE_VERSION,
+                trust, 
+                loopCount, 
+                permanentlyUnlockedFragments 
+            };
+            localStorage.setItem('SVI_Loop_State', JSON.stringify(state));
+            showMessage("Io: 'State saved. The echo is secure.'");
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('SVI_Loop_State');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    if (state.version !== SAVE_VERSION) {
+                        console.warn("Save file is from an older version. Resetting.");
+                        localStorage.removeItem('SVI_Loop_State');
+                        return;
+                    }
+                    trust = state.trust || 1;
+                    loopCount = state.loopCount || 1;
+                    permanentlyUnlockedFragments = state.permanentlyUnlockedFragments || {};
+                    showMessage("Io: 'State loaded. Resuming from the last echo.'");
+                } catch(e) {
+                    console.error("Error loading saved state:", e);
+                    showMessage("Io: 'Warning: Save data corrupted. Starting a new loop.'");
+                }
+            }
+            unlockKeywords();
+            updateStatusUI();
+        }
+
+        function unlockKeywords() {
+            let unlockedNew = false;
+            mnemonicLibrary = { ...baseMnemonicLibrary };
+            for (let i = 2; i <= loopCount; i++) {
+                if (loopUnlocks[i]) {
+                    mnemonicLibrary = { ...mnemonicLibrary, ...loopUnlocks[i] };
+                    if (i === loopCount) unlockedNew = true;
+                }
+            }
+            if (unlockedNew && ioMessageDiv) {
+                 ioMessageDiv.innerHTML = "Io: 'The echo of the last loop has resonated. New keywords are available.'";
+            }
+        }
+
+        function endLoop() {
+            trust++;
+            loopCount++;
+            loss = 0;
+            hope = 0;
+            Object.keys(memoryFragments).forEach(key => {
+                memoryFragments[key].unlocked = false;
+                if (key === 'B') memoryFragments[key].status = 'corrupted';
+            });
+            echoes = 0;
+            
+            saveState(); // Auto-save at the end of a loop
+            
+            showMessage(`Io: 'The signal fades... but something remains. Our connection feels stronger. #TRUST has increased. Let us begin again.'`);
+            showMainOptions();
+            unlockKeywords();
+        }
+
+        // --- MAIN UI & INITIALIZATION ---
+        function showMainOptions() {
+            mainContainer.innerHTML = `
+                <div class="game-container">
+                    <div id="game-status" class="game-status"></div>
+                    <div id="io-message" class="io-message">Io: Query my memory fragments to generate #LOSS.</div>
+                    <div class="query-input-container">
+                        <input type="text" id="mnemonic-query-input" placeholder="Enter keyword...">
+                    </div>
+                    <div id="player-options" class="player-options">
+                        <button class="action-button forge-hope-button" onclick="forgeHope()">Forge Hope (100 #LOSS -> 10 #HOPE)</button>
+                        <button class="main-menu-button memory-inventory-button" onclick="showMemoryInventory()">Memory Inventory</button>
+                        <button class="main-menu-button ship-systems-button" onclick="showShipSystems()" ${trust < 2 ? 'disabled' : ''}>Ship Systems</button>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                           <button class="main-menu-button utility-button" onclick="saveState()">Save Game</button>
+                           <button class="main-menu-button utility-button" onclick="loadState()">Load Game</button>
+                        </div>
+                        <button class="main-menu-button end-loop-button mt-2" onclick="endLoop()">End Loop (Bank #TRUST)</button>
+                        <button class="main-menu-button utility-button" onclick="showMessage('Accessibility options coming soon.')" disabled>Accessibility</button>
+                    </div>
+                </div>`;
+            
+            ioMessageDiv = document.getElementById('io-message');
+            playerOptionsDiv = document.getElementById('player-options');
+            gameStatusDiv = document.getElementById('game-status');
+            document.getElementById('mnemonic-query-input').addEventListener('keydown', handleMnemonicQuery);
+            
+            updateStatusUI();
+        }
+
+        function gameLoop() {
+            updateProgressBars();
+            if(permanentlyUnlockedFragments['C']){
+                loss += memoryFragments.C.resonanceBonus.value;
+                updateStatusUI();
+            }
+        }
+
+        window.onload = () => {
+            loadState();
+            showMainOptions();
+            setInterval(gameLoop, 1000);
+        };
+    </script>
+</body>
+</html>
