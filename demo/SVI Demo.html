@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starship Valindra Idle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d1a; /* Dark cosmic background */
+            color: #e0f2fe; /* Light blue text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: auto; /* Allow scrolling if content overflows */
+        }
+        .game-container {
+            background-color: #1a1a2e; /* Slightly lighter dark background */
+            border-radius: 1rem;
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.7); /* Stronger blue glow */
+            border: 2px solid rgba(0, 200, 255, 0.5);
+            width: 95%;
+            max-width: 800px; /* Max width for larger screens */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .io-message, .player-options, .game-status, .event-log, .upgrade-bay {
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        .io-message {
+            background-color: rgba(2, 6, 23, 0.8); /* Darker blue-black, subtle */
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            text-align: center;
+            font-size: 1.125rem; /* text-lg */
+            line-height: 1.6;
+        }
+        .player-options, .upgrade-bay {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .action-button, .upgrade-button, .main-menu-button {
+            background-image: linear-gradient(to right, #00aaff, #00e0ff);
+            color: #0d0d1a;
+            font-weight: 600; /* semibold */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.4);
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .action-button:hover, .upgrade-button:hover, .main-menu-button:hover {
+            background-image: linear-gradient(to right, #00e0ff, #00aaff);
+            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .action-button:active, .upgrade-button:active, .main-menu-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 170, 255, 0.3);
+        }
+        .game-status {
+            background-color: rgba(25, 25, 40, 0.7);
+            border: 1px solid rgba(0, 100, 200, 0.2);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .game-status div {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            background-color: rgba(0, 150, 255, 0.1);
+        }
+        .event-log {
+            background-color: rgba(10, 10, 25, 0.6);
+            border: 1px solid rgba(0, 80, 160, 0.2);
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap; /* Preserve formatting for log entries */
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a2e;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 0 60px rgba(0, 200, 255, 0.9);
+            border: 2px solid rgba(0, 200, 255, 0.7);
+            z-index: 1000;
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .message-box button {
+            margin-top: 1rem;
+            background-image: linear-gradient(to right, #e05252, #ff7b7b);
+            color: #fff;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed rgba(0, 150, 255, 0.1);
+        }
+        .upgrade-item:last-child {
+            border-bottom: none;
+        }
+        .upgrade-item button {
+            margin-left: 1rem;
+        }
+        .action-button:disabled, .upgrade-button:disabled, .main-menu-button:disabled {
+            background-image: linear-gradient(to right, #333, #555);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .music-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .music-button {
+            background-image: linear-gradient(to right, #6d28d9, #9333ea);
+            color: #e0f2fe;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+        }
+        .music-button:hover {
+            background-image: linear-gradient(to right, #9333ea, #6d28d9);
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.6);
+            transform: translateY(-2px);
+        }
+        .music-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(109, 40, 217, 0.3);
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="game-container">
+        <div id="io-message" class="io-message"></div>
+        <div id="player-options" class="player-options"></div>
+        <div id="game-status" class="game-status"></div>
+        <div id="event-log" class="event-log"></div>
+        <div class="music-controls">
+            <button id="playMusicButton" class="music-button">Play Music</button>
+            <button id="pauseMusicButton" class="music-button" disabled>Pause Music</button>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop muted>
+        <source src="https://cdn1.aimusicgen.ai/7/audios/9c6d90e4-75fb-4afd-94b3-5a789aeedc60.mp3" type="audio/mpeg">
+        <!-- Royalty-free ambient track: "Digital Dawn" from ai_music_gen -->
+    </audio>
+
+    <script>
+        // Game state variables
+        let shipIntegrity = 100;
+        let discoveryPoints = 0;
+        let scanPower = 1; // Level of scan capabilities
+        let shieldStrength = 1; // Level of shield capabilities
+        let maneuverability = 1; // Level of maneuverability
+
+        let scanUpgradeCost = 20;
+        let shieldUpgradeCost = 20;
+        let maneuverUpgradeCost = 20;
+        let repairCost = 10; // Cost to repair a segment of ship integrity
+
+        // Idle game specific upgrades
+        let basicDiscoveryModuleLevel = 0;
+        let basicDiscoveryModuleCost = 20;
+        let autoScannerLevel = 0;
+        let autoScannerCost = 50;
+        
+        let colonyLevel = 0; // New: Level of the established colony
+        let colonyUpgradeCost = 100; // New: Cost to establish or upgrade colony
+        const COLONY_INCOME_RATE = 1; // New: DP per second per colony level
+
+        let currentAnomaly = null; // Changed to null when no active anomaly
+        let isUpgradeBayOpen = false;
+        let lastAnomalyScanTime = 0; // For auto-scanner cooldown
+
+        const ANOMALY_COOLDOWN_BASE = 60; // seconds per anomaly at Lvl 1 auto-scanner
+
+        const eventLog = [];
+
+        // UI elements
+        const ioMessageDiv = document.getElementById('io-message');
+        const playerOptionsDiv = document.getElementById('player-options');
+        const gameStatusDiv = document.getElementById('game-status');
+        const eventLogDiv = document.getElementById('event-log');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const playMusicButton = document.getElementById('playMusicButton');
+        const pauseMusicButton = document.getElementById('pauseMusicButton');
+
+        // Music Controls
+        playMusicButton.onclick = () => {
+            backgroundMusic.muted = false;
+            backgroundMusic.play().then(() => {
+                playMusicButton.disabled = true;
+                pauseMusicButton.disabled = false;
+                addLog("Music: Playing ambient track.");
+            }).catch(error => {
+                showMessage("Io: Unable to play music. Ensure an audio source is set and allowed by your browser. Error: " + error.message);
+                addLog("Music: Play failed. " + error.message);
+            });
+        };
+
+        pauseMusicButton.onclick = () => {
+            backgroundMusic.pause();
+            playMusicButton.disabled = false;
+            pauseMusicButton.disabled = true;
+            addLog("Music: Paused ambient track.");
+        };
+
+
+        // Function to display messages (replaces alert())
+        function showMessage(message) {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `<p>${message}</p><button id="message-box-ok">OK</button>`;
+            document.body.appendChild(messageBox);
+
+            document.getElementById('message-box-ok').onclick = () => {
+                document.body.removeChild(messageBox);
+            };
+        }
+
+        // Update game status display
+        function updateStatus() {
+            gameStatusDiv.innerHTML = `
+                <div>Ship Integrity: ${shipIntegrity.toFixed(0)}%</div>
+                <div>Discovery Points: ${discoveryPoints.toFixed(1)}</div>
+                <div>Scan Power: Lvl ${scanPower}</div>
+                <div>Shield Strength: Lvl ${shieldStrength}</div>
+                <div>Maneuverability: Lvl ${maneuverability}</div>
+                <div>Passive Discovery: Lvl ${basicDiscoveryModuleLevel}</div>
+                <div>Auto-Scanner: Lvl ${autoScannerLevel}</div>
+                ${colonyLevel > 0 ? `<div>Colony Level: ${colonyLevel}</div>` : ''}
+                ${colonyLevel > 0 ? `<div>Colony Income: ${(colonyLevel * COLONY_INCOME_RATE).toFixed(1)} DP/s</div>` : ''}
+            `;
+        }
+
+        // Add event to log
+        function addLog(entry) {
+            eventLog.push(entry);
+            eventLogDiv.innerHTML = eventLog.map(e => `<span>${e}</span>`).join('<br>');
+            eventLogDiv.scrollTop = eventLogDiv.scrollHeight; // Scroll to bottom
+        }
+
+        // Game over check
+        function checkGameOver() {
+            if (shipIntegrity <= 0) {
+                ioMessageDiv.innerHTML = "Io: Captain, I regret to inform you that the Starship Valindra's integrity has fallen below critical levels. Our mission, for now, is concluded. All data has been securely logged.";
+                playerOptionsDiv.innerHTML = `<button class="action-button" onclick="startGame()">Restart Simulation</button>`;
+                addLog("--- SIMULATION ENDED: SHIP DESTROYED ---");
+                // Stop music on game over
+                backgroundMusic.pause();
+                playMusicButton.disabled = false;
+                pauseMusicButton.disabled = true;
+                return true;
+            }
+            return false;
+        }
+
+        // Main game loop (runs every second)
+        function gameLoop() {
+            if (checkGameOver()) return;
+
+            // Passive Discovery Point generation from modules
+            if (basicDiscoveryModuleLevel > 0) {
+                const pointsToAdd = basicDiscoveryModuleLevel * 0.5; // 0.5 points per level per second
+                discoveryPoints += pointsToAdd;
+            }
+
+            // Passive Discovery Point generation from colony
+            if (colonyLevel > 0) {
+                const colonyPoints = colonyLevel * COLONY_INCOME_RATE;
+                discoveryPoints += colonyPoints;
+            }
+
+            // Auto-scanner logic
+            if (autoScannerLevel > 0 && currentAnomaly === null && !isUpgradeBayOpen) {
+                const currentTime = Date.now();
+                const requiredCooldown = (ANOMALY_COOLDOWN_BASE / autoScannerLevel) * 1000; // Cooldown in ms
+                if (currentTime - lastAnomalyScanTime >= requiredCooldown) {
+                    generateAnomaly();
+                    lastAnomalyScanTime = currentTime;
+                }
+            }
+
+            updateStatus();
+        }
+
+        // Function to present main options (scan or upgrade)
+        function showMainOptions() {
+            isUpgradeBayOpen = false;
+            ioMessageDiv.innerHTML = "Io: What is your next command, Captain?";
+            playerOptionsDiv.innerHTML = `
+                <button class="main-menu-button" onclick="generateAnomaly()" ${currentAnomaly !== null || autoScannerLevel > 0 ? 'disabled' : ''}>
+                    Scan for Anomaly ${autoScannerLevel > 0 ? '(Auto-Scanning Active)' : ''}
+                </button>
+                <button class="main-menu-button" onclick="showUpgradeBay()">Go to Upgrade Bay</button>
+            `;
+            updateStatus();
+        }
+
+        // Show upgrade bay interface
+        function showUpgradeBay() {
+            isUpgradeBayOpen = true;
+            ioMessageDiv.innerHTML = "Io: Welcome to the Upgrade Bay, Captain. Enhance Valindra's capabilities.";
+            playerOptionsDiv.innerHTML = `
+                <div class="upgrade-item">
+                    <span>Scan Power (Lvl ${scanPower + 1}): ${scanUpgradeCost} Discovery Points</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('scan')" ${discoveryPoints < scanUpgradeCost ? 'disabled' : ''}>Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <span>Shield Strength (Lvl ${shieldStrength + 1}): ${shieldUpgradeCost} Discovery Points</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('shield')" ${discoveryPoints < shieldUpgradeCost ? 'disabled' : ''}>Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <span>Maneuverability (Lvl ${maneuverability + 1}): ${maneuverUpgradeCost} Discovery Points</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('maneuver')" ${discoveryPoints < maneuverUpgradeCost ? 'disabled' : ''}>Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <span>Basic Discovery Module (Lvl ${basicDiscoveryModuleLevel + 1}): ${basicDiscoveryModuleCost} Discovery Points (Generates DP passively)</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('basicDiscoveryModule')" ${discoveryPoints < basicDiscoveryModuleCost ? 'disabled' : ''}>Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <span>Automated Scanner (Lvl ${autoScannerLevel + 1}): ${autoScannerCost} Discovery Points (Scans for anomalies automatically)</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('autoScanner')" ${discoveryPoints < autoScannerCost ? 'disabled' : ''}>Upgrade</button>
+                </div>
+                ${colonyLevel > 0 ? // Only show colony upgrade if a colony exists
+                `<div class="upgrade-item">
+                    <span>Colony Level (Lvl ${colonyLevel + 1}): ${colonyUpgradeCost} Discovery Points (Increases passive DP)</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('colony')" ${discoveryPoints < colonyUpgradeCost ? 'disabled' : ''}>Upgrade</button>
+                </div>` : ''}
+                <div class="upgrade-item">
+                    <span>Repair Ship Integrity: ${repairCost} Discovery Points (Heals 10 Integrity)</span>
+                    <button class="upgrade-button" onclick="buyUpgrade('repair')" ${discoveryPoints < repairCost || shipIntegrity >= 100 ? 'disabled' : ''}>Repair</button>
+                </div>
+                <button class="main-menu-button mt-4" onclick="showMainOptions()">Return to Bridge</button>
+            `;
+            updateStatus();
+        }
+
+        // Handle buying upgrades
+        function buyUpgrade(type) {
+            let cost = 0;
+            let currentLevel = 0;
+            let upgradeSuccessful = false;
+
+            switch (type) {
+                case 'scan':
+                    cost = scanUpgradeCost;
+                    currentLevel = scanPower;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        scanPower++;
+                        scanUpgradeCost = Math.round(scanUpgradeCost * 1.5);
+                        upgradeSuccessful = true;
+                    }
+                    break;
+                case 'shield':
+                    cost = shieldUpgradeCost;
+                    currentLevel = shieldStrength;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        shieldStrength++;
+                        shieldUpgradeCost = Math.round(shieldUpgradeCost * 1.5);
+                        upgradeSuccessful = true;
+                    }
+                    break;
+                case 'maneuver':
+                    cost = maneuverUpgradeCost;
+                    currentLevel = maneuverability;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        maneuverability++;
+                        maneuverUpgradeCost = Math.round(maneuverUpgradeCost * 1.5);
+                        upgradeSuccessful = true;
+                    }
+                    break;
+                case 'basicDiscoveryModule':
+                    cost = basicDiscoveryModuleCost;
+                    currentLevel = basicDiscoveryModuleLevel;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        basicDiscoveryModuleLevel++;
+                        basicDiscoveryModuleCost = Math.round(basicDiscoveryModuleCost * 2); // Higher cost increase for idle
+                        upgradeSuccessful = true;
+                    }
+                    break;
+                case 'autoScanner':
+                    cost = autoScannerCost;
+                    currentLevel = autoScannerLevel;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        autoScannerLevel++;
+                        autoScannerCost = Math.round(autoScannerCost * 2.5); // Higher cost increase for idle
+                        upgradeSuccessful = true;
+                        lastAnomalyScanTime = Date.now(); // Reset cooldown on upgrade
+                    }
+                    break;
+                case 'colony': // New: Upgrade colony level
+                    cost = colonyUpgradeCost;
+                    currentLevel = colonyLevel;
+                    if (discoveryPoints >= cost) {
+                        discoveryPoints -= cost;
+                        colonyLevel++;
+                        colonyUpgradeCost = Math.round(colonyUpgradeCost * 2.5); // Exponential cost for colony
+                        upgradeSuccessful = true;
+                    }
+                    break;
+                case 'repair':
+                    cost = repairCost;
+                    if (discoveryPoints >= cost && shipIntegrity < 100) {
+                        discoveryPoints -= cost;
+                        shipIntegrity = Math.min(100, shipIntegrity + 10); // Restore 10 integrity, max 100
+                        // repairCost = Math.round(repairCost * 1.1); // Optional: increase repair cost
+                        upgradeSuccessful = true;
+                        showMessage(`Io: Ship integrity repaired! Current: ${shipIntegrity.toFixed(0)}%.`);
+                        addLog(`Repair: +10 Integrity`);
+                    } else if (shipIntegrity >= 100) {
+                        showMessage("Io: Ship integrity is already at maximum, Captain.");
+                        addLog("Attempted Repair: (Failed - Integrity at max)");
+                        upgradeSuccessful = false; // Set to false for explicit message
+                    } else {
+                        showMessage("Io: Insufficient Discovery Points for this repair, Captain.");
+                        addLog("Attempted Repair: (Failed - Insufficient Points)");
+                        upgradeSuccessful = false; // Set to false for explicit message
+                    }
+                    // For repair, the message is handled inside the case, so no generic message afterwards
+                    updateStatus();
+                    showUpgradeBay(); // Refresh upgrade bay to show new costs/levels / disabled state
+                    return; // Exit early to prevent generic message below
+            }
+
+            if (upgradeSuccessful) {
+                showMessage(`Io: Upgrade successful! ${type.charAt(0).toUpperCase() + type.slice(1)} is now Level ${currentLevel + 1}.`);
+                addLog(`Upgrade: ${type} to Level ${currentLevel + 1}`);
+            } else {
+                // This 'else' will only trigger if an upgrade *type* was attempted and failed for insufficient points
+                // The repair type already handles its own failure message
+                if (type !== 'repair') {
+                    showMessage("Io: Insufficient Discovery Points for this upgrade, Captain.");
+                    addLog(`Attempted Upgrade: ${type} (Failed - Insufficient Points)`);
+                }
+            }
+            updateStatus();
+            showUpgradeBay(); // Refresh upgrade bay to show new costs/levels
+        }
+
+
+        // Generate a new anomaly
+        function generateAnomaly() {
+            if (currentAnomaly !== null) { // Prevent generating if one is already active
+                // This scenario should be prevented by auto-scanner check, but as a safeguard.
+                return;
+            }
+
+            const anomalyTypes = [
+                {
+                    name: "Unidentified Energy Signature",
+                    description: "Io: Captain, long-range sensors detect a faint, oscillating energy signature. Its nature is anomalous, exhibiting properties not consistent with known cosmic phenomena.",
+                    options: [
+                        { text: "Initiate Detailed Scan", action: "scan_energy_sig" },
+                        { text: "Approach for Closer Observation", action: "approach_energy_sig" },
+                        { text: "Maintain Distance and Observe", action: "observe_energy_sig" }
+                    ]
+                },
+                {
+                    name: "Temporal Distortion Field",
+                    description: "Io: Captain, a localized temporal distortion field has been detected directly ahead. Readings indicate fluctuating causality within its anomaly zone.",
+                    options: [
+                        { text: "Attempt Chronometric Analysis", action: "chrono_scan_temporal" },
+                        { text: "Navigate Through the Field", action: "navigate_temporal" },
+                        { text: "Alter Course to Avoid", action: "avoid_temporal" }
+                    ]
+                },
+                {
+                    name: "Exotic Matter Cloud",
+                    description: "Io: Captain, our scanners pick up a vast cloud of exotic matter. It appears stable, but its composition defies all conventional physics.",
+                    options: [
+                        { text: "Deploy Scientific Probe", action: "deploy_probe_exotic" },
+                        { text: "Attempt to Sample Remotely", action: "sample_remote_exotic" },
+                        { text: "Bypass the Cloud", action: "bypass_cloud_exotic" }
+                    ]
+                },
+                {
+                    name: "Rogue AI Construct",
+                    description: "Io: Warning! An autonomous, highly intelligent construct has appeared on sensors. Its intent is currently unknown, but its energy readings are fluctuating wildly.",
+                    options: [
+                        { text: "Attempt to Communicate", action: "communicate_rogue_ai" },
+                        { text: "Initiate Evasive Maneuvers", action: "evade_rogue_ai" },
+                        { text: "Prepare for Defensive Posture", action: "defend_rogue_ai" }
+                    ]
+                },
+                {
+                    name: "Asteroid Field",
+                    description: "Io: Captain, a dense asteroid field lies directly in our path. Navigational hazards are extreme.",
+                    options: [
+                        { text: "Attempt to Navigate (High Risk)", action: "navigate_asteroid" },
+                        { text: "Initiate Scan for Safe Passage", action: "scan_asteroid" },
+                        { text: "Seek Alternative Route", action: "alternate_route_asteroid" }
+                    ]
+                },
+                { // New Anomaly: Uncharted Habitable Planet
+                    name: "Uncharted Habitable Planet",
+                    description: "Io: Captain! Long-range scans indicate an uncharted, Class-M habitable planet. Atmospheric and geological conditions appear ideal for sustaining life.",
+                    options: [
+                        // Only show "Establish Colony" if no colony exists yet
+                        ...(colonyLevel === 0 ? [{ text: "Establish Colony", action: "establish_colony" }] : []),
+                        { text: "Conduct Detailed Survey", action: "survey_planet" },
+                        { text: "Observe from Orbit", action: "observe_planet" }
+                    ]
+                }
+            ];
+
+            // Filter out "Uncharted Habitable Planet" if a colony already exists, to avoid multiple initial colonies
+            const availableAnomalyTypes = anomalyTypes.filter(anomaly => {
+                if (anomaly.name === "Uncharted Habitable Planet" && colonyLevel > 0) {
+                    return false;
+                }
+                return true;
+            });
+
+
+            const randomIndex = Math.floor(Math.random() * availableAnomalyTypes.length);
+            currentAnomaly = availableAnomalyTypes[randomIndex];
+            ioMessageDiv.innerHTML = currentAnomaly.description;
+            displayOptions(currentAnomaly.options);
+            addLog(`Anomaly Detected: ${currentAnomaly.name}`);
+
+            // Disable manual scan button if auto-scanner is on, or if an anomaly is active
+            const scanButton = playerOptionsDiv.querySelector('button[onclick="generateAnomaly()"]');
+            if (scanButton) {
+                scanButton.disabled = true;
+            }
+        }
+
+        // Display player options
+        function displayOptions(options) {
+            playerOptionsDiv.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'action-button';
+                button.textContent = option.text;
+                button.onclick = () => handleAction(option.action);
+                playerOptionsDiv.appendChild(button);
+            });
+        }
+
+        // Handle player actions
+        function handleAction(action) {
+            if (checkGameOver()) return;
+
+            playerOptionsDiv.innerHTML = ''; // Clear options
+            addLog(`Player Action: ${action.replace(/_/g, ' ').toUpperCase()}`);
+
+            let outcomeMessage = "";
+            let newAnomalyDelay = 2000; // Delay before returning to main options
+
+            switch (action) {
+                // --- Unidentified Energy Signature outcomes ---
+                case "scan_energy_sig":
+                    // Base 70% success + 5% per scanPower level
+                    const scanSuccessChance = 0.7 + (scanPower * 0.05);
+                    if (Math.random() < scanSuccessChance) {
+                        outcomeMessage = `Io: Scan complete. The signature originates from a highly advanced, inert data beacon. We've successfully extracted ancient archives. Discovery Points +${10 + scanPower * 2}.`;
+                        discoveryPoints += (10 + scanPower * 2);
+                    } else {
+                        outcomeMessage = "Io: Scan results are inconclusive. The energy signature is highly disruptive, causing minor system fluctuations. Ship Integrity -5.";
+                        shipIntegrity -= 5;
+                    }
+                    break;
+                case "approach_energy_sig":
+                    // Base 50% risky success + 5% per maneuverability level
+                    const approachRiskySuccessChance = 0.5 + (maneuverability * 0.05);
+                    if (Math.random() < approachRiskySuccessChance) {
+                        outcomeMessage = `Io: Proximity successful! We've downloaded significant archives. Discovery Points +${25 + scanPower * 3}. Ship Integrity -${Math.max(0, 3 - shieldStrength)}.`;
+                        discoveryPoints += (25 + scanPower * 3);
+                        shipIntegrity -= Math.max(0, 3 - shieldStrength); // Reduced damage with shields
+                    } else {
+                        outcomeMessage = `Io: Proximity alert! The beacon's energy field reacted unpredictably. Significant shield damage sustained. Ship Integrity -${Math.max(0, 15 - shieldStrength * 2)}.`;
+                        shipIntegrity -= Math.max(0, 15 - shieldStrength * 2); // Reduced damage with shields
+                    }
+                    break;
+                case "observe_energy_sig":
+                    outcomeMessage = "Io: Maintaining observation. The energy signature remains constant. No new data without direct interaction, but no risk.";
+                    break;
+
+                // --- Temporal Distortion Field outcomes ---
+                case "chrono_scan_temporal":
+                    // Base 60% chance of insight + 5% per scanPower level
+                    const chronoInsightChance = 0.6 + (scanPower * 0.05);
+                    if (Math.random() < chronoInsightChance) {
+                        outcomeMessage = `Io: Chronometric analysis reveals the field is a natural phenomenon, a nexus of converging temporal currents. We've gained valuable data. Discovery Points +${15 + scanPower * 2}.`;
+                        discoveryPoints += (15 + scanPower * 2);
+                    } else {
+                        outcomeMessage = "Io: Analysis is difficult. The temporal fluctuations are causing minor diagnostic errors. Ship Integrity -5.";
+                        shipIntegrity -= 5;
+                    }
+                    break;
+                case "navigate_temporal":
+                    // Base 40% success + 10% per maneuverability level
+                    const navigateTemporalSuccessChance = 0.4 + (maneuverability * 0.1);
+                    if (Math.random() < navigateTemporalSuccessChance) {
+                        outcomeMessage = `Io: Navigation successful! We've passed through the field, gaining insight into its dynamics. It felt... strange. Discovery Points +${20 + maneuverability * 3}.`;
+                        discoveryPoints += (20 + maneuverability * 3);
+                    } else {
+                        outcomeMessage = `Io: Temporal feedback loop! Minor phase alignment issues. Ship Integrity -${Math.max(0, 20 - shieldStrength * 2)}.`;
+                        shipIntegrity -= Math.max(0, 20 - shieldStrength * 2);
+                    }
+                    break;
+                case "avoid_temporal":
+                    outcomeMessage = "Io: Course altered. The Starship Valindra has safely bypassed the temporal distortion. No new data, but no risk.";
+                    break;
+
+                // --- Exotic Matter Cloud outcomes ---
+                case "deploy_probe_exotic":
+                    // Base 80% success + 5% per scanPower level
+                    const probeSuccessChance = 0.8 + (scanPower * 0.05);
+                    if (Math.random() < probeSuccessChance) {
+                        outcomeMessage = `Io: Probe deployed and returned with exotic matter samples. Analysis is underway, indicating unique energy storage potential. Discovery Points +${30 + scanPower * 4}.`;
+                        discoveryPoints += (30 + scanPower * 4);
+                    } else {
+                        outcomeMessage = `Io: Probe lost! It was consumed by an unknown reaction. Ship Integrity -${Math.max(0, 10 - shieldStrength)}.`;
+                        shipIntegrity -= Math.max(0, 10 - shieldStrength);
+                    }
+                    break;
+                case "sample_remote_exotic":
+                    // Base 50% success + 10% per scanPower level
+                    const remoteSampleSuccessChance = 0.5 + (scanPower * 0.1);
+                    if (Math.random() < remoteSampleSuccessChance) {
+                        outcomeMessage = `Io: Remote sampling successful. Small quantities of exotic matter acquired. Initial data suggests zero-point energy characteristics. Discovery Points +${20 + scanPower * 3}.`;
+                        discoveryPoints += (20 + scanPower * 3);
+                    } else {
+                        outcomeMessage = `Io: Remote collection failed. Minor energy feedback from the cloud. Ship Integrity -${Math.max(0, 8 - shieldStrength)}.`;
+                        shipIntegrity -= Math.max(0, 8 - shieldStrength);
+                    }
+                    break;
+                case "bypass_cloud_exotic":
+                    outcomeMessage = "Io: Course adjusted. We have safely navigated around the exotic matter cloud. No new data, but no risk.";
+                    break;
+                
+                // --- Rogue AI Construct outcomes ---
+                case "communicate_rogue_ai":
+                    const commSuccessChance = 0.3 + (scanPower * 0.08); // Scan power helps with communication
+                    if (Math.random() < commSuccessChance) {
+                        outcomeMessage = `Io: Communication established! The construct is a damaged navigational drone, grateful for contact. It shares star charts. Discovery Points +${20 + scanPower * 3}.`;
+                        discoveryPoints += (20 + scanPower * 3);
+                    } else {
+                        outcomeMessage = `Io: Communication attempt perceived as hostile! The construct emits a disruptive pulse. Ship Integrity -${Math.max(0, 18 - shieldStrength * 2)}.`;
+                        shipIntegrity -= Math.max(0, 18 - shieldStrength * 2);
+                    }
+                    break;
+                case "evade_rogue_ai":
+                    const evadeSuccessChance = 0.6 + (maneuverability * 0.1); // Maneuverability is key
+                    if (Math.random() < evadeSuccessChance) {
+                        outcomeMessage = `Io: Evasive maneuvers successful! We have outmaneuvered the rogue construct. Discovery Points +10.`;
+                        discoveryPoints += 10;
+                    } else {
+                        outcomeMessage = `Io: Evasion failed! The construct locked on and fired. Ship Integrity -${Math.max(0, 25 - shieldStrength * 3)}.`;
+                        shipIntegrity -= Math.max(0, 25 - shieldStrength * 3);
+                    }
+                    break;
+                case "defend_rogue_ai":
+                    const defendSuccessChance = 0.4 + (shieldStrength * 0.1); // Shield strength is key
+                    if (Math.random() < defendSuccessChance) {
+                        outcomeMessage = `Io: Defensive posture effective. We withstood the construct's attacks and forced it to retreat. Ship Integrity -${Math.max(0, 10 - shieldStrength * 2)}. Discovery Points +15.`;
+                        shipIntegrity -= Math.max(0, 10 - shieldStrength * 2);
+                        discoveryPoints += 15;
+                    } else {
+                        outcomeMessage = `Io: Our defenses were overwhelmed. The construct inflicted heavy damage before disengaging. Ship Integrity -${Math.max(0, 35 - shieldStrength * 2)}.`;
+                        shipIntegrity -= Math.max(0, 35 - shieldStrength * 2);
+                    }
+                    break;
+
+                // --- Asteroid Field outcomes ---
+                case "navigate_asteroid":
+                    const navigateAsteroidSuccessChance = 0.3 + (maneuverability * 0.15); // High risk, maneuverability helps a lot
+                    if (Math.random() < navigateAsteroidSuccessChance) {
+                        outcomeMessage = `Io: Daring navigation successful! We threaded the needle. Discovery Points +25.`;
+                        discoveryPoints += 25;
+                    } else {
+                        outcomeMessage = `Io: Collision warning! Hull breach. Ship Integrity -${Math.max(0, 30 - shieldStrength * 2)}.`;
+                        shipIntegrity -= Math.max(0, 30 - shieldStrength * 2);
+                    }
+                    break;
+                case "scan_asteroid":
+                    const scanAsteroidSuccessChance = 0.7 + (scanPower * 0.05);
+                    if (Math.random() < scanAsteroidSuccessChance) {
+                        outcomeMessage = `Io: Scan reveals a hidden, stable passage! We navigate safely and find rare minerals. Discovery Points +20.`;
+                        discoveryPoints += 20;
+                    } else {
+                        outcomeMessage = `Io: Scan inconclusive. The field is too chaotic. Minor impact sustained. Ship Integrity -${Math.max(0, 10 - shieldStrength)}.`;
+                        shipIntegrity -= Math.max(0, 10 - shieldStrength);
+                    }
+                    break;
+                case "alternate_route_asteroid":
+                    outcomeMessage = "Io: Seeking an alternative route. This will take more time, but ensures safety. No new discoveries here.";
+                    break;
+
+                // --- Uncharted Habitable Planet outcomes (NEW) ---
+                case "establish_colony":
+                    if (discoveryPoints >= colonyUpgradeCost) {
+                        discoveryPoints -= colonyUpgradeCost;
+                        colonyLevel++;
+                        colonyUpgradeCost = Math.round(colonyUpgradeCost * 2.5); // Cost for next level
+                        outcomeMessage = `Io: Colony successfully established on the habitable planet! It will now begin generating Discovery Points passively. Further upgrades available in the Upgrade Bay.`;
+                        addLog(`Colony Established: Level 1`);
+                    } else {
+                        outcomeMessage = `Io: Insufficient Discovery Points (${discoveryPoints.toFixed(1)} DP) to establish a colony (requires ${colonyUpgradeCost} DP).`;
+                        addLog(`Attempted Colony Establishment: Failed - Insufficient Points`);
+                    }
+                    break;
+                case "survey_planet":
+                    const surveySuccessChance = 0.75 + (scanPower * 0.05);
+                    if (Math.random() < surveySuccessChance) {
+                        outcomeMessage = `Io: Detailed survey complete. The planet holds vast untapped resources and unique flora. Discovery Points +${35 + scanPower * 5}.`;
+                        discoveryPoints += (35 + scanPower * 5);
+                    } else {
+                        outcomeMessage = `Io: Survey encountered unexpected atmospheric interference, preventing full data acquisition. Ship Integrity -${Math.max(0, 5 - shieldStrength)}.`;
+                        shipIntegrity -= Math.max(0, 5 - shieldStrength);
+                    }
+                    break;
+                case "observe_planet":
+                    outcomeMessage = "Io: Maintaining orbital observation of the habitable planet. No direct interaction, but valuable long-term data being collected. No immediate points, but no risk.";
+                    break;
+
+                default:
+                    outcomeMessage = "Io: Action registered. Awaiting further instruction.";
+            }
+
+            currentAnomaly = null; // Clear active anomaly after action
+            ioMessageDiv.innerHTML = outcomeMessage;
+            addLog(`Outcome: ${outcomeMessage}`);
+            updateStatus();
+
+            if (!checkGameOver()) {
+                setTimeout(showMainOptions, newAnomalyDelay); // Return to main menu after action
+            }
+        }
+
+        // Start the game
+        function startGame() {
+            shipIntegrity = 100;
+            discoveryPoints = 0;
+            scanPower = 1;
+            shieldStrength = 1;
+            maneuverability = 1;
+            scanUpgradeCost = 20;
+            shieldUpgradeCost = 20;
+            maneuverUpgradeCost = 20;
+            repairCost = 10; 
+            
+            basicDiscoveryModuleLevel = 0;
+            basicDiscoveryModuleCost = 20;
+            autoScannerLevel = 0;
+            autoScannerCost = 50;
+
+            colonyLevel = 0; // Reset colony level
+            colonyUpgradeCost = 100; // Reset colony initial cost
+            
+            currentAnomaly = null;
+            isUpgradeBayOpen = false;
+            lastAnomalyScanTime = Date.now(); // Initialize current time
+
+            eventLog.length = 0; // Clear log
+            addLog("--- SIMULATION STARTED ---");
+            updateStatus();
+            ioMessageDiv.innerHTML = "Io: Welcome to the bridge, Captain Odelis. Starship Valindra is fully operational. We are now ready to begin our deep-reality exploration.";
+            
+            // Ensure music is paused and buttons are reset on game start
+            backgroundMusic.pause();
+            playMusicButton.disabled = false;
+            pauseMusicButton.disabled = true;
+
+            // Start the main game loop
+            setInterval(gameLoop, 1000); // Game loop runs every second
+            
+            setTimeout(showMainOptions, 3000); // Initial main menu after intro
+        }
+
+        // Initialize game on load
+        window.onload = startGame;
+
+    </script>
+</body>
+</html>
