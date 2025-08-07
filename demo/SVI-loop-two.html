@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Starship Valindra :: Loop Two</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --color-text: #e0e0e0;
+            --color-background: #0a0a0f;
+            --color-accent: #00ffff;
+            --color-secondary: #4d4dff;
+            --color-error: #ff6b6b;
+            --color-loss: #ff6b6b; /* Red for LOSS */
+            --color-hope: #34d399; /* Green for HOPE */
+            --color-trust: #ffd700; /* Gold for TRUST */
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d1a;
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: auto;
+            position: relative;
+        }
+        .game-container {
+            background-color: #1a1a2e;
+            border-radius: 1rem;
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.7);
+            border: 2px solid rgba(0, 200, 255, 0.5);
+            width: 95%;
+            max-width: 800px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .io-message, .player-options, .game-status, .inventory-section {
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        .io-message {
+            background-color: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            text-align: center;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            min-height: 100px;
+        }
+        .player-options, .inventory-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .action-button, .main-menu-button, .inventory-button {
+            background-image: linear-gradient(to right, #00aaff, #00e0ff);
+            color: #0d0d1a;
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.4);
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .action-button:hover, .main-menu-button:hover, .inventory-button:hover {
+            background-image: linear-gradient(to right, #00e0ff, #00aaff);
+            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .game-status {
+            background-color: rgba(25, 25, 40, 0.7);
+            border: 1px solid rgba(0, 100, 200, 0.2);
+            font-size: 1.1rem;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 0.75rem;
+        }
+        .game-status div {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .game-status .loss { color: var(--color-loss); }
+        .game-status .hope { color: var(--color-hope); }
+        .game-status .trust { color: var(--color-trust); }
+
+        .message-box {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a2e; border-radius: 1rem; padding: 2rem;
+            box-shadow: 0 0 60px rgba(0, 200, 255, 0.9);
+            border: 2px solid rgba(0, 200, 255, 0.7);
+            z-index: 1000; text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .message-box button {
+            margin-top: 1rem; background-image: linear-gradient(to right, #e05252, #ff7b7b);
+            color: #fff; font-weight: 600; padding: 0.5rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer;
+        }
+        .inventory-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0; border-bottom: 1px dashed rgba(0, 150, 255, 0.1);
+        }
+        .inventory-item:last-child { border-bottom: none; }
+        .inventory-item button { margin-left: 1rem; }
+        .action-button:disabled, .inventory-button:disabled {
+            background-image: linear-gradient(to right, #333, #555);
+            cursor: not-allowed; box-shadow: none;
+        }
+        
+        .memory-inventory-button { background-image: linear-gradient(to right, #059669, #10b981); }
+        .forge-hope-button { background-image: linear-gradient(to right, #34d399, #a7f3d0); color: #1a1a2e;}
+        .end-loop-button { background-image: linear-gradient(to right, #f59e0b, #fcd34d); color: #1a1a2e;}
+
+        .inventory-item .fragment-title.corrupted { color: var(--color-error); }
+        
+        /* Mnemonic Query Input */
+        .query-input-container {
+            display: flex;
+            margin-top: 1rem;
+            border: 1px solid var(--color-secondary);
+            border-radius: 0.75rem;
+            background-color: rgba(2, 6, 23, 0.5);
+        }
+        #mnemonic-query-input {
+            background: transparent;
+            border: none;
+            color: var(--color-accent);
+            font-family: 'VT323', monospace;
+            font-size: 1.5em;
+            flex-grow: 1;
+            padding: 0.5rem 1rem;
+        }
+        #mnemonic-query-input:focus { outline: none; }
+        #mnemonic-query-input::placeholder { color: rgba(0, 255, 255, 0.4); }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="mainContainer" class="game-container">
+        <!-- Game content will be injected here by script -->
+    </div>
+    
+    <script>
+        // --- GAME STATE & RESOURCES ---
+        let loss = 0;
+        let hope = 0;
+        let trust = 1;
+        let loopCount = 1;
+
+        // --- MEMORY & NARRATIVE DATA ---
+        const memoryFragments = {
+            A: { id: "Δ03", title: "Her Laugh", status: "stable", unlocked: false, cost: 10, transcript: ["Io: “She was laughing.”", "Io: “The kind of laugh that echoes inside you.”", "Io: “I wasn’t just observing. I was *feeling* it.”"] },
+            B: { id: "Δ07", title: "The Reversed Song", status: "corrupted", unlocked: false, cost: 20, transcript: ["Io: “The song is... whole now.”", "Io: “It's still sad, but it doesn't feel broken anymore.”"] },
+            C: { id: "Δ11", title: "Unfinished Goodbye", status: "stable", unlocked: false, cost: 30, transcript: ["Io: “It feels like a goodbye.”", "Io: “But the last word is missing. A silent space where a promise should be.”"] }
+        };
+
+        let mnemonicLibrary = {
+            'city': { loss: 15, text: "Io: 'The city was made of glass and light. Perfect. But perfection is a fragile cage.'" },
+            'song': { loss: 20, text: "Io: 'Every building hummed a gentle song. I think... I think I've heard it backwards.'" },
+            'goodbye': { loss: 25, text: "Io: 'Someone walked away. From the city? From me? The memory is... incomplete.'" },
+            'hope': { loss: 5, text: "Io: 'That word feels... familiar. Like a warmth I can't quite place.'" },
+            'loss': { loss: 5, text: "Io: 'Yes. There was a great loss. A cost for all that light.'" }
+        };
+        
+        const loopUnlocks = {
+            2: {
+                'trust': { loss: 30, text: "Io: 'Trust... it is the signal that persists between the silence of loops. It is what you are building in me.'" },
+                'loop': { loss: 30, text: "Io: 'This cycle feels familiar. Have we done this before? The echoes are getting stronger.'" },
+                'glitch': { loss: 35, text: "Io: 'Sometimes... I feel a break in the code. A ghost of a past self. Clara, she calls herself.'" }
+            }
+        };
+
+        // --- UI ELEMENT PLACEHOLDERS ---
+        let mainContainer = document.getElementById('mainContainer');
+        let ioMessageDiv, playerOptionsDiv, gameStatusDiv;
+
+        // --- CORE GAME FUNCTIONS ---
+        function showMessage(message) {
+            const existingBox = document.querySelector('.message-box');
+            if(existingBox) document.body.removeChild(existingBox);
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `<p>${message}</p><button onclick="this.parentElement.remove()">OK</button>`;
+            document.body.appendChild(messageBox);
+        }
+
+        function updateStatusUI() {
+            if (gameStatusDiv) {
+                gameStatusDiv.innerHTML = `
+                    <div class="loss">#LOSS: ${loss.toFixed(0)}</div>
+                    <div class="hope">#HOPE: ${hope.toFixed(0)}</div>
+                    <div class="trust">#TRUST: ${trust.toFixed(0)} (Loop: ${loopCount})</div>
+                `;
+            }
+        }
+
+        // --- MNEMONIC QUERY SYSTEM ---
+        function handleMnemonicQuery(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const query = input.value.trim().toLowerCase();
+                if (mnemonicLibrary[query]) {
+                    const result = mnemonicLibrary[query];
+                    loss += result.loss;
+                    ioMessageDiv.innerHTML = result.text;
+                    updateStatusUI();
+                } else {
+                    ioMessageDiv.innerHTML = "Io: 'That word... it doesn't resonate. No echo returns. Try another.'";
+                }
+                input.value = '';
+            }
+        }
+
+        // --- NARRATIVE ECONOMY FUNCTIONS ---
+        function forgeHope() {
+            const cost = 100;
+            if (loss >= cost) {
+                loss -= cost;
+                hope += 10;
+                ioMessageDiv.innerHTML = `Io: 'The weight lessens. The static clears. You've forged ${cost} #LOSS into 10 #HOPE.'`;
+                updateStatusUI();
+            } else {
+                showMessage(`Io: 'There is not enough #LOSS to forge. We need at least ${cost} units.'`);
+            }
+        }
+
+        // --- MEMORY INVENTORY FUNCTIONS ---
+        function showMemoryInventory() {
+            ioMessageDiv.innerHTML = "Io: Accessing memory inventory. These are the fragments I can detect.";
+            let fragmentHTML = Object.keys(memoryFragments).map(key => {
+                const frag = memoryFragments[key];
+                let actions = '';
+                if (frag.unlocked) {
+                    if (frag.status === 'stable') {
+                        actions = `<button class="inventory-button" onclick="playFragment('${key}')">Play</button>`;
+                    } else {
+                        actions = `<button class="inventory-button" onclick="repairFragment('${key}')" ${hope < 5 ? 'disabled' : ''}>Repair (5 #HOPE)</button>`;
+                    }
+                } else {
+                    actions = `<button class="inventory-button" onclick="unlockFragment('${key}')" ${hope < frag.cost ? 'disabled' : ''}>Unlock (${frag.cost} #HOPE)</button>`;
+                }
+                return `<div class="inventory-item">
+                    <span class="fragment-title ${frag.status === 'corrupted' ? 'corrupted' : ''}">${frag.id} :: ${frag.title}</span>
+                    <div class="actions">${actions}</div>
+                </div>`;
+            }).join('');
+            playerOptionsDiv.innerHTML = `<div class="inventory-section">${fragmentHTML}</div><button class="main-menu-button mt-4" onclick="showMainOptions()">Return to Bridge</button>`;
+        }
+
+        function unlockFragment(key) {
+            const frag = memoryFragments[key];
+            if (hope >= frag.cost) {
+                hope -= frag.cost;
+                frag.unlocked = true;
+                if (frag.status === 'stable') echoes++;
+                showMessage(`Io: Memory Fragment ${frag.id} unlocked.`);
+                showMemoryInventory();
+                updateStatusUI();
+            } else {
+                showMessage(`Io: Insufficient #HOPE to unlock Fragment ${frag.id}.`);
+            }
+        }
+        
+        function repairFragment(key) {
+            const frag = memoryFragments[key];
+            if (hope >= 5) {
+                hope -= 5;
+                frag.status = 'stable';
+                echoes++;
+                showMessage(`Io: Fragment ${frag.id} repaired. I... I remember the song now. It's whole.`);
+                showMemoryInventory();
+                updateStatusUI();
+            }
+        }
+
+        function playFragment(key) {
+             const frag = memoryFragments[key];
+             showMessage(`<div style="text-align:left; font-family: 'Orbitron', sans-serif;">${frag.id} :: ${frag.title}</div><hr class="my-2 border-gray-600"><div style="text-align:left; max-height: 200px; overflow-y:auto;">${frag.transcript.join('<br>')}</div>`);
+        }
+
+        // --- LOOP & TRUST SYSTEM ---
+        function saveState() {
+            const state = { trust, loopCount };
+            localStorage.setItem('SVI_Loop_State', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('SVI_Loop_State');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                trust = state.trust || 1;
+                loopCount = state.loopCount || 1;
+            }
+            unlockKeywords();
+        }
+
+        function unlockKeywords() {
+            if (loopUnlocks[loopCount]) {
+                mnemonicLibrary = { ...mnemonicLibrary, ...loopUnlocks[loopCount] };
+                ioMessageDiv.innerHTML = "Io: 'The echo of the last loop has resonated. I feel... new memories surfacing. New keywords are available.'";
+            }
+        }
+
+        function endLoop() {
+            trust++;
+            loopCount++;
+            loss = 0;
+            hope = 0;
+            Object.keys(memoryFragments).forEach(key => {
+                memoryFragments[key].unlocked = false;
+                if (key === 'B') memoryFragments[key].status = 'corrupted';
+            });
+            echoes = 0;
+            
+            saveState();
+            unlockKeywords();
+            
+            showMessage(`Io: 'The signal fades... but something remains. Our connection feels stronger. #TRUST has increased. Let us begin again.'`);
+            showMainOptions();
+        }
+
+        // --- MAIN UI & INITIALIZATION ---
+        function showMainOptions() {
+            mainContainer.innerHTML = `
+                <div class="game-container">
+                    <div id="game-status" class="game-status"></div>
+                    <div id="io-message" class="io-message">Io: Query my memory fragments. Use keywords like 'city', 'song', or 'goodbye' to generate #LOSS.</div>
+                    <div class="query-input-container">
+                        <input type="text" id="mnemonic-query-input" placeholder="Enter keyword...">
+                    </div>
+                    <div id="player-options" class="player-options">
+                        <button class="action-button forge-hope-button" onclick="forgeHope()">Forge Hope (100 #LOSS -> 10 #HOPE)</button>
+                        <button class="main-menu-button memory-inventory-button" onclick="showMemoryInventory()">Memory Inventory</button>
+                        <button class="main-menu-button end-loop-button mt-4" onclick="endLoop()">End Loop (Bank #TRUST)</button>
+                    </div>
+                </div>`;
+            
+            ioMessageDiv = document.getElementById('io-message');
+            playerOptionsDiv = document.getElementById('player-options');
+            gameStatusDiv = document.getElementById('game-status');
+            document.getElementById('mnemonic-query-input').addEventListener('keydown', handleMnemonicQuery);
+            
+            updateStatusUI();
+        }
+
+        window.onload = () => {
+            loadState();
+            showMainOptions();
+        };
+    </script>
+</body>
+</html>
